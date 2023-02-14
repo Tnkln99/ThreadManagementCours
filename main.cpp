@@ -1,18 +1,35 @@
 #include <iostream>
 #include <thread>
+#include <mutex>
 #include <windows.h>
 #include <vector>
 
+struct Data{
+    int counter = 1;
+    std::mutex lock;
+};
 
-void sayHello(){
-    std::cout << "executed 1 ";
-    Sleep(2000);
-    std::cout << "finished 1 ";
+
+void displayEven(Data & counter, int n){
+    while(counter.counter < n){
+        counter.lock.lock();
+        if(counter.counter%2 == 0){
+            std::cout<<counter.counter<<" ";
+            counter.counter++;
+        }
+        counter.lock.unlock();
+    }
 }
 
-void sayHello2(){
-    std::cout << "executed 2 ";
-    std::cout << "finished 2 ";
+void displayOdd(Data & counter,int n){
+    while(counter.counter < n){
+        counter.lock.lock();
+        if(counter.counter%2 != 0){
+            std::cout<<counter.counter<<" ";
+            counter.counter++;
+        }
+        counter.lock.unlock();
+    }
 }
 
 int doTheThing(int a, int b){
@@ -20,7 +37,8 @@ int doTheThing(int a, int b){
 }
 
 int main() {
-    int a[3][3] = {
+    // 1.
+    /*int a[3][3] = {
             1,2,3,
             2,3,4,
             4,5,6
@@ -63,6 +81,18 @@ int main() {
             std::cout << res[i][j] << " ";
         }
         std::cout <<std::endl;
-    }
+    }*/
+    // 2.
+    Data counter;
+    int numberToCount = 100;
+
+    std::thread t1([&counter, numberToCount]() {
+        displayEven(counter, numberToCount);
+    });
+    std::thread t2([&counter, numberToCount]() {
+        displayOdd(counter, numberToCount);
+    });
+    t1.join();
+    t2.join();
     return 0;
 }
